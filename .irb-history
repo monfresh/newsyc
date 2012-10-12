@@ -1,0 +1,50 @@
+scroll_to_row "tableView", 17
+query("tableViewCell index:0")
+quit
+query("tableViewCell index:0")
+query("tableViewCell index:1")
+query("tableViewCell index:2")
+quit
+query("tableViewCell index:2")
+query("tableViewCell index:1")
+query("tableViewCell index:0")
+touch("tableViewCell index:1")
+touch("tableViewCell index:2")
+scroll_to_row "tableView", 20
+scroll_to_row "tableView", 25
+query("tableViewCell").length
+query("tableViewCell index:0")
+touch("tableViewCell index:1")
+touch("tableViewCell index:2")
+touch("tableViewCell index:7")
+touch("tableViewCell index:6")
+query("tableViewCell index:1")
+query("tableViewCell index:2")
+query("tableViewCell index:3")
+query ("navigationItemButtonView")
+query ("navigationItemButtonView")
+quit
+query("tableView",numberOfRowsInSection:0).first
+query("tableViewCell").length
+scroll_to_row "tableView", 20
+query("tableViewCell").length
+scroll_to_row "tableView", 15
+query("tableViewCell").length
+scroll_to_row "tableView", 10
+query("tableViewCell").length
+scroll_to_row "tableView", 25
+scroll_to_row "tableView", 26
+query("tableViewCell index:0")
+query("tableViewCell index:1")
+touch("tableViewCell index:1")
+query_all("tableViewCell")
+query_all("tableViewCell").length
+query_all("tableViewCell").length
+query_all("tableViewCell").length
+quit
+scroll_to_row "tableView", 25
+query_all("tableViewCell").length
+touch("tableViewCell index:1")
+touch("tableViewCell index:2")
+query_all("tableViewCell index:1")
+quit

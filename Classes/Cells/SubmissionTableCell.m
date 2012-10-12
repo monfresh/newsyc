@@ -100,6 +100,11 @@
     siterect.size.width = floorf(siterect.size.width);
     siterect.origin = CGPointMake(bounds.width - offsets.width - siterect.size.width, bounds.height - offsets.height - siterect.size.height);
     [site drawInRect:siterect withFont:[[self class] subtleFont] lineBreakMode:UILineBreakModeHeadTruncation alignment:UITextAlignmentRight];
+    
+    
+    self.accessibilityLabel = title;
+    self.isAccessibilityElement = YES;
+    
 }
 
 - (void)dealloc {
@@ -107,5 +112,7 @@
     
     [super dealloc];
 }
+
+
 
 @end

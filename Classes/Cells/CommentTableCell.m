@@ -227,6 +227,9 @@
             [bezierPath fill];
         }
     }
+    
+    self.accessibilityLabel = user;
+    self.isAccessibilityElement = YES;
 }
 
 #pragma mark - Tap Handlers

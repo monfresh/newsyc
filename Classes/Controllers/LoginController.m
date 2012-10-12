@@ -110,6 +110,7 @@
     usernameField.frame = CGRectMake(fieldRect.origin.x, fieldRect.origin.y, usernameCell.bounds.size.width + fieldRect.size.width, fieldRect.size.height);
     [usernameField setReturnKeyType:UIReturnKeyNext];
     [usernameCell addSubview:usernameField];
+    usernameField.placeholder = @"Username";
     
     passwordCell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
     [[passwordCell textLabel] setText:@"Password"];
@@ -118,6 +119,7 @@
     [passwordField setSecureTextEntry:YES];
     [passwordField setReturnKeyType:UIReturnKeyDone];
     [passwordCell addSubview:passwordField];
+    passwordField.placeholder = @"Password";
     
 	loadingCell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
     LoadingIndicatorView *loadingIndicatorView = [[LoadingIndicatorView alloc] initWithFrame:CGRectMake(0, 0, 200, 50)];
