@@ -13,16 +13,22 @@
 
 @interface LoginController : UIViewController <UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate> {
     UIImageView *backgroundImageView;
+    UIView *centeringAlignmentView;
+    UIView *tableContainerView;
     UITableView *tableView;
-	UITableViewCell *loadingCell;
+    
     UITableViewCell *usernameCell;
     UITextField *usernameField;
     UITableViewCell *passwordCell;
     UITextField *passwordField;
+    UITableViewCell *loadingCell;
+    
     BarButtonItem *cancelItem;
     BarButtonItem *completeItem;
     ActivityIndicatorItem *loadingItem;
-    id<LoginControllerDelegate> delegate;
+    
+    __weak id<LoginControllerDelegate> delegate;
+    
     UILabel *topLabel;
     UILabel *bottomLabel;
 	

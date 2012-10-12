@@ -38,9 +38,23 @@
         [self addSubview:toolbarView];
         [self setExpanded:NO];
         
-        UILongPressGestureRecognizer *longPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressFromRecognizer:)];
-        [longPressRecognizer setMinimumPressDuration:0.65f];
-        [contentView addGestureRecognizer:[longPressRecognizer autorelease]];
+        linkLongPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressFromRecognizer:)];
+        [linkLongPressRecognizer setMinimumPressDuration:0.65f];
+        [linkLongPressRecognizer setCancelsTouchesInView:NO];
+        [contentView addGestureRecognizer:linkLongPressRecognizer];
+
+        doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapFromRecognizer:)];
+        [doubleTapRecognizer setNumberOfTapsRequired:2];
+        [contentView addGestureRecognizer:doubleTapRecognizer];
+
+        tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapFromRecognizer:)];
+        [tapRecognizer setNumberOfTapsRequired:1];
+        [tapRecognizer setCancelsTouchesInView:NO];
+        [tapRecognizer requireGestureRecognizerToFail:doubleTapRecognizer];
+        [contentView addGestureRecognizer:tapRecognizer];
+
+        [tapRecognizer setEnabled:YES];
+        [doubleTapRecognizer setEnabled:YES];
     }
     
     return self;
@@ -49,7 +63,10 @@
 - (void)dealloc {
     [comment release];
     [toolbarView release];
-    
+    [doubleTapRecognizer release];
+    [linkLongPressRecognizer release];
+    [tapRecognizer release];
+
     [super dealloc];
 }
 
@@ -96,9 +113,9 @@
 
 + (UIEdgeInsets)margins {
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-        return UIEdgeInsetsMake(18.0f, 21.0f, 23.0f, 20.0f);
+        return UIEdgeInsetsMake(18.0f, 21.0f, 25.0f, 20.0f);
     } else if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        return UIEdgeInsetsMake(8.0f, 10.0f, 12.0f, 10.0);
+        return UIEdgeInsetsMake(8.0f, 10.0f, 13.0f, 10.0);
     }
     
     return UIEdgeInsetsZero;
@@ -179,23 +196,29 @@
     NSString *points = [comment points] == 1 ? @"1 point" : [NSString stringWithFormat:@"%d points", [comment points]];
     NSString *comments = [comment children] == 0 ? @"" : [comment children] == 1 ? @"1 reply" : [NSString stringWithFormat:@"%d replies", [comment children]];
     
+    // draw username
     [[UIColor blackColor] set];
     [user drawAtPoint:CGPointMake(bounds.origin.x + margins.left, margins.top) withFont:[[self class] userFont]];
     
+    // draw date
     [[UIColor lightGrayColor] set];
-    CGSize dateSize = [date sizeWithFont:[[self class] dateFont]];
-    [date drawAtPoint:CGPointMake(bounds.size.width - dateSize.width - margins.right, margins.top) withFont:[[self class] dateFont]];
+    CGRect daterect;
+    daterect.size = [date sizeWithFont:[[self class] dateFont]];
+    daterect.origin = CGPointMake(bounds.size.width - daterect.size.width - margins.right, margins.top);
+    [date drawInRect:daterect withFont:[[self class] dateFont]];
     
+    // draw comment body
     if ([[comment body] length] > 0) {
-        bodyRect.size.height = [[self class] bodyHeightForComment:comment withWidth:bounds.size.width indentationLevel:indentationLevel];
-        bodyRect.size.width = bounds.size.width - bounds.origin.x - margins.left - margins.left;
-        bodyRect.origin.x = bounds.origin.x + margins.left;
-        bodyRect.origin.y = margins.top + dateSize.height + offsets.height;
+        bodyrect.size.height = [[self class] bodyHeightForComment:comment withWidth:bounds.size.width indentationLevel:indentationLevel];
+        bodyrect.size.width = bounds.size.width - bounds.origin.x - margins.left - margins.left;
+        bodyrect.origin.x = bounds.origin.x + margins.left;
+        bodyrect.origin.y = margins.top + daterect.size.height + offsets.height;
 
         HNEntryBodyRenderer *renderer = [comment renderer];
-        [renderer renderInContext:UIGraphicsGetCurrentContext() rect:bodyRect];
+        [renderer renderInContext:UIGraphicsGetCurrentContext() rect:bodyrect];
     }
     
+    // draw points
     [[UIColor grayColor] set];
     CGRect pointsrect;
     pointsrect.size.height = [points sizeWithFont:[[self class] subtleFont]].height;
@@ -205,6 +228,7 @@
     if ([[self class] entryShowsPoints:comment])
           [points drawInRect:pointsrect withFont:[[self class] subtleFont] lineBreakMode:UILineBreakModeTailTruncation alignment:UITextAlignmentLeft];
     
+    // draw replies count
     [[UIColor grayColor] set];
     CGRect commentsrect;
     commentsrect.size.height = [comments sizeWithFont:[[self class] subtleFont]].height;
@@ -213,30 +237,49 @@
     commentsrect.origin.y = bounds.size.height - margins.bottom - commentsrect.size.height;
     
     // draw link highlight
+    UIBezierPath *highlightBezierPath = [UIBezierPath bezierPath];
     for (NSValue *rect in highlightedRects) {
         CGRect highlightedRect = [rect CGRectValue];
         
-        if (highlightedRect.size.width != 0 && highlightedRect.size.height != 0) {
-            [[UIColor colorWithWhite:0.5f alpha:0.5f] set];
+        if (highlightedRect.size.width != 0 && highlightedRect.size.height != 0) {            
+            CGRect rect = CGRectInset(highlightedRect, -4.0f, -4.0f);
+            rect.origin.x += bodyrect.origin.x;
+            rect.origin.y += bodyrect.origin.y;
             
-            CGRect rect = CGRectInset(highlightedRect, -2.0f, -1.5f);
-            rect.origin.x += bodyRect.origin.x;
-            rect.origin.y += bodyRect.origin.y;
-            
-            UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:2.0f];
-            [bezierPath fill];
+            UIBezierPath *bezierPath = [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:3.0f];
+            [highlightBezierPath appendPath:bezierPath];
         }
     }
     
     self.accessibilityLabel = user;
     self.isAccessibilityElement = YES;
+
+    [[UIColor colorWithWhite:0.5f alpha:0.5f] set];
+    [highlightBezierPath fill];
+
+    // draw divider line
+    CGRect linerect;
+    linerect.origin.x = bodyrect.origin.x;
+    linerect.size.width = bodyrect.size.width;
+    linerect.origin.y = bounds.size.height - 1.0f;
+    linerect.size.height = 1.0f;
+    if (!expanded) {
+        [[UIColor lightGrayColor] set];
+        UIRectFill(linerect);
+    }
 }
 
 #pragma mark - Tap Handlers
 
 - (void)clearHighlightedRects {
-    [highlightedRects release];
-    highlightedRects = nil;
+    if (highlightedRects != nil) {
+        [tapRecognizer setEnabled:YES];
+        [doubleTapRecognizer setEnabled:YES];
+
+        [highlightedRects release];
+        highlightedRects = nil;
+        [self setNeedsDisplay];
+    }
 }
 
 - (void)singleTapped {
@@ -253,63 +296,58 @@
 
 - (CGPoint)bodyPointForPoint:(CGPoint)point {
     CGPoint bodyPoint;
-    bodyPoint.x = point.x - bodyRect.origin.x;
-    bodyPoint.y = point.y - bodyRect.origin.y;
+    bodyPoint.x = point.x - bodyrect.origin.x;
+    bodyPoint.y = point.y - bodyrect.origin.y;
     return bodyPoint;
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    [self clearHighlightedRects];
+
     UITouch *touch = [touches anyObject];
     CGPoint point = [self bodyPointForPoint:[touch locationInView:self]];
     
-    [self clearHighlightedRects];
-    [[comment renderer] linkURLAtPoint:point forWidth:bodyRect.size.width rects:&highlightedRects];
-    [highlightedRects retain];
-    
-    [self setNeedsDisplay];
+    [[comment renderer] linkURLAtPoint:point forWidth:bodyrect.size.width rects:&highlightedRects];
+
+    if (highlightedRects != nil) {
+        [highlightedRects retain];
+        [self setNeedsDisplay];
+
+        [tapRecognizer setEnabled:NO];
+        [doubleTapRecognizer setEnabled:NO];
+    }
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    UITouch *touch = [touches anyObject];
-    CGPoint point = [self bodyPointForPoint:[touch locationInView:self]];
-    
-    NSURL *url = [[comment renderer] linkURLAtPoint:point forWidth:bodyRect.size.width rects:NULL];
-    
-    if (url != nil) {
-        if ([delegate respondsToSelector:@selector(commentTableCell:selectedURL:)]) {
-            [delegate commentTableCell:self selectedURL:url];
-        }
+    if (highlightedRects != nil) {
+        UITouch *touch = [touches anyObject];
+        CGPoint point = [self bodyPointForPoint:[touch locationInView:self]];
         
-        [self clearHighlightedRects];
-        [self setNeedsDisplay];
-    } else {
-        if ([touch tapCount] == 1) {
-            [self performSelector:@selector(singleTapped) withObject:nil afterDelay:0.35f];
-        } else if ([touch tapCount] == 2) {
-            [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(singleTapped) object:nil];
-
-            [self doubleTapped];
+        NSURL *url = [[comment renderer] linkURLAtPoint:point forWidth:bodyrect.size.width rects:NULL];
+        
+        if (url != nil) {
+            if ([delegate respondsToSelector:@selector(commentTableCell:selectedURL:)]) {
+                [delegate commentTableCell:self selectedURL:url];
+            }
         }
     }
+
+    [self clearHighlightedRects];
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
     [self clearHighlightedRects];
-    
-    [self setNeedsDisplay];
 }
 
-- (void)actionSheet:(UIActionSheet *)sheet clickedButtonAtIndex:(NSInteger)index {
-	if (index == [sheet cancelButtonIndex]) return;
-    
-    NSURL *url = [NSURL URLWithString:[sheet sheetContext]];
-	
-    if (index == [sheet firstOtherButtonIndex]) {
-        [[UIApplication sharedApplication] openURL:url];
-    } else if (index == [sheet firstOtherButtonIndex] + 1) {
-        UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-        [pasteboard setURL:url];
-        [pasteboard setString:[url absoluteString]];
+- (void)tapFromRecognizer:(UITapGestureRecognizer *)gesture {
+    if (highlightedRects == nil) {
+        [self singleTapped];
+    }
+}
+
+- (void)doubleTapFromRecognizer:(UITapGestureRecognizer *)gesture {
+    if (highlightedRects == nil) {
+        [self doubleTapped];
     }
 }
 
@@ -319,7 +357,7 @@
         CGPoint point = [self bodyPointForPoint:location];
         
         NSSet *rects;
-        NSURL *url = [[comment renderer] linkURLAtPoint:point forWidth:bodyRect.size.width rects:&rects];
+        NSURL *url = [[comment renderer] linkURLAtPoint:point forWidth:bodyrect.size.width rects:&rects];
         
         if (url != nil && [rects count] > 0) {
             UIActionSheet *action = [[[UIActionSheet alloc]
@@ -341,9 +379,17 @@
     }
 }
 
-- (void)doubleTapFromRecognizer:(UITapGestureRecognizer *)recognizer {
-    if ([delegate respondsToSelector:@selector(commentTableCellDoubleTapped:)]) {
-        [delegate commentTableCellDoubleTapped:self];
+- (void)actionSheet:(UIActionSheet *)sheet clickedButtonAtIndex:(NSInteger)index {
+	if (index == [sheet cancelButtonIndex]) return;
+
+    NSURL *url = [NSURL URLWithString:[sheet sheetContext]];
+
+    if (index == [sheet firstOtherButtonIndex]) {
+        [[UIApplication sharedApplication] openURL:url];
+    } else if (index == [sheet firstOtherButtonIndex] + 1) {
+        UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+        [pasteboard setURL:url];
+        [pasteboard setString:[url absoluteString]];
     }
 }
 
