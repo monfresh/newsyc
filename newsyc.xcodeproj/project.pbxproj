@@ -293,6 +293,7 @@
 		99649FBA1593B36D00C1A075 /* Default-Landscape.png in Resources */ = {isa = PBXBuildFile; fileRef = 7D2BB6BE151FE506003D98B9 /* Default-Landscape.png */; };
 		99B063D215967B1600A42F3E /* calabash.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99B063D115967B1600A42F3E /* calabash.framework */; };
 		99B063D515967BEB00A42F3E /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99B063D415967BEB00A42F3E /* CFNetwork.framework */; };
+		B24E6B6A16287A2B006790D6 /* HNObjectCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 7DBD537E15B3E27500E3D496 /* HNObjectCache.m */; };
 		CBFCE7AD1398712F007A5DDD /* SearchController.m in Sources */ = {isa = PBXBuildFile; fileRef = CBFCE7AB1398712F007A5DDD /* SearchController.m */; };
 		CBFCE7F613989054007A5DDD /* HNAPISearch.m in Sources */ = {isa = PBXBuildFile; fileRef = CBFCE7F513989054007A5DDD /* HNAPISearch.m */; };
 		FA5F796B134CE04F002EEBCA /* InstapaperLoginController.m in Sources */ = {isa = PBXBuildFile; fileRef = FA5F796A134CE04F002EEBCA /* InstapaperLoginController.m */; };
@@ -1361,6 +1362,7 @@
 				99649F741593B36D00C1A075 /* BarButtonItem.m in Sources */,
 				99649F751593B36D00C1A075 /* LoadMoreCell.m in Sources */,
 				99649F761593B36D00C1A075 /* OrangeTableView.m in Sources */,
+				B24E6B6A16287A2B006790D6 /* HNObjectCache.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
